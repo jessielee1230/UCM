@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jessie Li — Lead Desigenr · March 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --navy:   #002664;
+  --red:    #D7153A;
+  --blue:   #146CFD;
+  --teal:   #2E808E;
+  --dark:   #22272B;
+  --mid:    #6B7280;
+  --light:  #F4F4F7;
+  --border: #D1D5DB;
+  --white:  #FFFFFF;
+  --gold:   #B45309;
+  --green:  #166534;
+  --green-bg: #DCFCE7;
+  --gold-bg:  #FEF3C7;
+  --red-bg:   #FEE2E2;
+  --blue-bg:  #DBEAFE;
+  --font: 'Public Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--font); }
+
+/* ── SHELL ── */
+.pres { width: 100vw; height: 100vh; background: var(--light); position: relative; overflow: hidden; }
+
+/* ── SLIDES ── */
+.slide {
+  position: absolute; inset: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  transform: translateX(48px);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.slide.active  { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.exit    { opacity: 0; transform: translateX(-48px); }
+
+/* ── PROGRESS ── */
+.progress { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: var(--border); z-index: 999; }
+.progress-fill { height: 100%; background: var(--red); transition: width 0.4s ease; }
+
+/* ── CHROME ── */
+.chrome {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 52px;
+  background: var(--navy); border-top: 2px solid var(--red);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 36px; z-index: 999;
+}
+.chrome-left { display: flex; align-items: center; gap: 10px; }
+.nsw-mark { width: 26px; height: 26px; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; color: white; letter-spacing: -0.5px; }
+.chrome-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; text-transform: uppercase; }
+.chrome-center { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.25); cursor: pointer; transition: all 0.2s; }
+.dot.active { background: var(--red); transform: scale(1.35); }
+.chrome-right { display: flex; align-items: center; gap: 10px; }
+.nav-btn { width: 34px; height: 34px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: rgba(255,255,255,0.8); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.nav-btn:hover { background: rgba(255,255,255,0.1); border-color: white; color: white; }
+.slide-ctr { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); }
+.slide-ctr span { color: var(--red); }
+
+/* ── SHARED LAYOUT HELPERS ── */
+.tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 14px;
+}
+.tag::before { content: ''; width: 20px; height: 2px; background: var(--red); flex-shrink: 0; }
+
+/* Strategy alignment pill */
+.strategy-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--blue-bg); border: 1px solid rgba(20,108,253,0.3);
+  padding: 5px 12px; font-size: 10px; font-weight: 700;
+  color: #1d4ed8; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.strategy-pill.green { background: var(--green-bg); border-color: rgba(22,101,52,0.3); color: var(--green); }
+.strategy-pill.gold  { background: var(--gold-bg);  border-color: rgba(180,83,9,0.3);  color: var(--gold); }
+.strategy-pill.red   { background: var(--red-bg);   border-color: rgba(215,21,58,0.3); color: var(--red); }
+
+/* Value badge */
+.val-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--navy); color: white;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 10px;
+}
+
+/* Bullet list */
+.bullet-list { display: flex; flex-direction: column; gap: 10px; }
+.bullet-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 16px; font-weight: 400; color: var(--dark); line-height: 1.5;
+}
+.bullet-icon {
+  width: 24px; height: 24px; background: var(--red); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: white; font-weight: 900; margin-top: 1px;
+}
+.bullet-icon.blue { background: var(--navy); }
+.bullet-icon.green-ic { background: #166534; }
+.bullet-icon.teal { background: var(--teal); }
+
+/* Stat box */
+.stat-box { display: flex; flex-direction: column; }
+.stat-before { font-size: 12px; color: var(--mid); text-decoration: line-through; margin-bottom: 2px; font-weight: 400; }
+.stat-num { font-size: 52px; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
+.stat-delta { font-size: 12px; font-weight: 700; margin-top: 4px; }
+.stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); margin-top: 3px; }
+
+/* Card */
+.card { background: white; border: 1px solid var(--border); padding: 20px 24px; }
+.card.navy-left { border-left: 4px solid var(--navy); }
+.card.red-left  { border-left: 4px solid var(--red); }
+.card.green-left{ border-left: 4px solid #166534; }
+.card.blue-left { border-left: 4px solid var(--blue); }
+
+/* Anim */
+.slide.active .anim { animation: fadeUp 0.5s ease forwards; }
+.anim { opacity: 0; }
+.slide.active .anim:nth-child(1){animation-delay:.04s}
+.slide.active .anim:nth-child(2){animation-delay:.10s}
+.slide.active .anim:nth-child(3){animation-delay:.16s}
+.slide.active .anim:nth-child(4){animation-delay:.22s}
+.slide.active .anim:nth-child(5){animation-delay:.28s}
+.slide.active .anim:nth-child(6){animation-delay:.34s}
+.slide.active .anim:nth-child(7){animation-delay:.40s}
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+/* ══════════════════════════════
+   SLIDE 1 — COVER
+══════════════════════════════ */
+#s1 { background: var(--navy); }
+
+.s1-wrap {
+  flex: 1; display: grid; grid-template-columns: 1fr 400px;
+  padding: 64px 56px 68px; gap: 0;
+}
+
+.s1-left { display: flex; flex-direction: column; justify-content: center; padding-right: 56px; border-right: 1px solid rgba(255,255,255,0.1); }
+
+.s1-eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); margin-bottom: 28px;
+}
+.s1-eyebrow-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; }
+.s1-eyebrow-badge {
+  background: rgba(215,21,58,0.2); border: 1px solid rgba(215,21,58,0.4);
+  color: #FCA5A5; font-size: 10px; font-weight: 700;
+  padding: 3px 10px; letter-spacing: 0.1em;
+}
+
+.s1-title {
+  font-size: clamp(44px, 5.5vw, 72px); font-weight: 900;
+  line-height: 0.92; color: white; letter-spacing: -0.03em; margin-bottom: 24px;
+}
+.s1-title .red { color: var(--red); }
+.s1-title .light { color: rgba(255,255,255,0.5); font-weight: 300; display: block; font-size: 0.55em; letter-spacing: 0; margin-bottom: 6px; }
+
+.s1-desc {
+  font-size: 16px; font-weight: 300; color: rgba(255,255,255,0.55);
+  line-height: 1.7; max-width: 460px; margin-bottom: 36px;
+}
+
+.s1-who { display: flex; flex-direction: column; gap: 6px; }
+.s1-who-row { font-size: 13px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 8px; }
+.s1-who-row strong { color: rgba(255,255,255,0.75); font-weight: 600; }
+.s1-sep { width: 1px; height: 10px; background: rgba(255,255,255,0.15); }
+
+.s1-right { padding-left: 56px; display: flex; flex-direction: column; justify-content: center; gap: 0; }
+
+.s1-kpi {
+  padding: 22px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+}
+.s1-kpi:first-child { border-top: 1px solid rgba(255,255,255,0.08); }
+.s1-kpi-num { font-size: 56px; font-weight: 900; color: white; line-height: 1; letter-spacing: -0.04em; }
+.s1-kpi-num .red { color: var(--red); }
+.s1-kpi-sub { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.35); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+.s1-kpi-bar { height: 2px; background: var(--red); margin-top: 12px; animation: bar 1s ease forwards; animation-play-state: paused; }
+.slide.active .s1-kpi-bar { animation-play-state: running; }
+@keyframes bar { from{width:0} to{width:var(--w,60%)} }
+
+.s1-award {
+  margin-top: 24px; padding: 16px 20px;
+  background: rgba(243,168,39,0.1); border: 1px solid rgba(243,168,39,0.25);
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.s1-award-body .s1-award-title { font-size: 12px; font-weight: 700; color: #FCD34D; }
+.s1-award-body .s1-award-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
+/* ══════════════════════════════
+   SLIDE 2 — SITUATION
+══════════════════════════════ */
+#s2 { background: white; }
+
+.s2-wrap {
+  flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; padding-bottom: 52px;
+}
+
+.s2-left {
+  background: var(--navy); padding: 56px 52px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.s2-left::after {
+  content: 'S'; position: absolute; right: -20px; bottom: -30px;
+  font-size: 240px; font-weight: 900; color: rgba(255,255,255,0.03);
+  pointer-events: none; letter-spacing: -0.05em; line-height: 1;
+}
+
+.s2-tagline { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+.s2-star-label { font-size: 11px; font-weight: 700; color: var(--red); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 7px; }
+.s2-star-label::before { content: ''; width: 18px; height: 2px; background: var(--red); }
+
+.s2-h { font-size: clamp(30px, 3.5vw, 46px); font-weight: 900; color: white; line-height: 1; letter-spacing: -0.03em; margin-bottom: 20px; }
+.s2-h em { font-style: normal; color: var(--red); }
+
+.s2-para { font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 28px; }
+
+.s2-bignum { display: flex; align-items: baseline; gap: 2px; margin-bottom: 4px; }
+.s2-bn-cur { font-size: 32px; font-weight: 900; color: var(--red); }
+.s2-bn-num { font-size: 72px; font-weight: 900; color: white; line-height: 1; letter-spacing: -0.05em; }
+.s2-bn-suf { font-size: 36px; font-weight: 900; color: var(--red); }
+.s2-bn-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; text-transform: uppercase; }
+
+.s2-strategy {
+  margin-top: 28px; padding: 14px 18px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.s2-strategy-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.s2-strategy-text .s2-st-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); margin-bottom: 2px; }
+.s2-strategy-text .s2-st-sub { font-size: 10px; color: rgba(255,255,255,0.35); line-height: 1.4; }
+
+.s2-right { padding: 56px 52px; display: flex; flex-direction: column; justify-content: center; }
+
+.s2-section-h { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mid); margin-bottom: 16px; margin-top: 28px; }
+.s2-section-h:first-child { margin-top: 0; }
+
+.s2-problems { display: flex; flex-direction: column; gap: 0; margin-bottom: 8px; }
+.s2-prob {
+  display: grid; grid-template-columns: 42px 1fr 56px; align-items: center; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.s2-prob:first-child { border-top: 1px solid var(--border); }
+.s2-prob-icon { width: 38px; height: 38px; background: var(--light); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.s2-prob-name { font-size: 14px; font-weight: 700; color: var(--dark); }
+.s2-prob-desc { font-size: 11px; color: var(--mid); margin-top: 2px; }
+.s2-prob-stat { font-size: 20px; font-weight: 900; color: var(--red); text-align: right; }
+
+.s2-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.s2-vtag {
+  font-size: 11px; font-weight: 600; padding: 6px 12px;
+  background: var(--light); border: 1px solid var(--border); color: var(--dark);
+}
+.s2-vtag.hl { background: #FEE2E2; border-color: rgba(215,21,58,0.25); color: var(--red); font-weight: 700; }
+
+/* ══════════════════════════════
+   SLIDE 3 — TASK + APPROACH
+══════════════════════════════ */
+#s3 { background: var(--light); }
+
+.s3-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 48px 56px 68px;
+}
+
+.s3-top { display: grid; grid-template-columns: 1fr auto; align-items: flex-start; margin-bottom: 32px; }
+.s3-title { font-size: clamp(28px, 3.2vw, 42px); font-weight: 900; color: var(--navy); letter-spacing: -0.02em; line-height: 1; margin-top: 10px; }
+.s3-title em { font-style: normal; color: var(--red); }
+
+.s3-role { background: var(--navy); padding: 16px 22px; min-width: 200px; }
+.s3-role-label { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+.s3-role-name { font-size: 14px; font-weight: 800; color: white; }
+.s3-role-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+/* Process steps */
+.s3-steps { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; flex: 1; margin-bottom: 20px; }
+.s3-step {
+  background: white; border: 1px solid var(--border);
+  padding: 20px 18px; display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+.s3-step-top-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+.s3-step.d1 .s3-step-top-bar { background: #146CFD; }
+.s3-step.d2 .s3-step-top-bar { background: var(--teal); }
+.s3-step.d3 .s3-step-top-bar { background: #B45309; }
+.s3-step.d4 .s3-step-top-bar { background: #166534; }
+.s3-step.d5 .s3-step-top-bar { background: var(--red); }
+
+.s3-step-phase { font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 6px; }
+.s3-step.d1 .s3-step-phase { color: #146CFD; }
+.s3-step.d2 .s3-step-phase { color: var(--teal); }
+.s3-step.d3 .s3-step-phase { color: #B45309; }
+.s3-step.d4 .s3-step-phase { color: #166534; }
+.s3-step.d5 .s3-step-phase { color: var(--red); }
+
+.s3-step-name { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 12px; line-height: 1.1; }
+.s3-bullets { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.s3-b { font-size: 12px; color: var(--mid); line-height: 1.4; display: flex; align-items: flex-start; gap: 5px; }
+.s3-b::before { content: '–'; color: var(--border); flex-shrink: 0; }
+.s3-metric { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.s3-metric-num { font-size: 24px; font-weight: 900; color: var(--navy); letter-spacing: -0.02em; }
+.s3-metric-label { font-size: 10px; color: var(--mid); margin-top: 1px; }
+
+/* Stakeholders strip */
+.s3-sh-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.s3-sh-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid); margin-right: 4px; }
+.s3-sh-tag { font-size: 11px; font-weight: 600; padding: 5px 11px; background: white; border: 1px solid var(--border); color: var(--dark); }
+.s3-sh-tag.navy { background: var(--navy); color: white; border-color: var(--navy); }
+
+/* ══════════════════════════════
+   SLIDE 4 — CHALLENGES + INCLUSION
+══════════════════════════════ */
+#s4 { background: white; }
+
+.s4-wrap {
+  flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; padding-bottom: 52px;
+}
+
+.s4-left { padding: 52px 52px 52px 56px; border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; }
+.s4-right { padding: 52px 56px 52px 52px; display: flex; flex-direction: column; justify-content: center; }
+
+.s4-chal-list { display: flex; flex-direction: column; gap: 0; margin-top: 24px; }
+.s4-chal {
+  display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: flex-start;
+  padding: 16px 0; border-bottom: 1px solid var(--border);
+}
+.s4-chal:first-child { border-top: 1px solid var(--border); }
+.s4-chal-num { font-size: 32px; font-weight: 900; color: rgba(215,21,58,0.2); line-height: 1; }
+.s4-chal-title { font-size: 15px; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
+.s4-chal-desc { font-size: 12px; color: var(--mid); margin-bottom: 7px; line-height: 1.4; }
+.s4-chal-sol {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; color: #166534;
+  background: #DCFCE7; padding: 4px 10px;
+}
+.s4-chal-sol::before { content: '✓'; }
+
+.s4-inc-title { font-size: clamp(22px,2.5vw,32px); font-weight: 900; color: var(--navy); line-height: 1.1; margin-top: 12px; margin-bottom: 22px; }
+.s4-inc-title em { font-style: normal; color: var(--red); }
+
+.s4-stds { display: flex; flex-direction: column; gap: 0; margin-bottom: 24px; }
+.s4-std { display: flex; align-items: center; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+.s4-std:first-child { border-top: 1px solid var(--border); }
+.s4-std-badge {
+  min-width: 76px; padding: 5px 8px; text-align: center;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  background: var(--blue-bg); border: 1px solid rgba(20,108,253,0.25); color: #1d4ed8;
+}
+.s4-std-text { font-size: 13px; color: var(--dark); line-height: 1.4; }
+
+.s4-quote {
+  background: var(--light); border-left: 4px solid var(--red);
+  padding: 18px 22px;
+}
+.s4-quote-text { font-size: 15px; font-weight: 600; color: var(--navy); line-height: 1.5; font-style: italic; margin-bottom: 8px; }
+.s4-quote-text em { font-style: normal; color: var(--red); }
+.s4-quote-attr { font-size: 11px; color: var(--mid); }
+
+/* ══════════════════════════════
+   SLIDE 5 — RESULTS
+══════════════════════════════ */
+#s5 { background: var(--light); }
+
+.s5-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 48px 56px 68px;
+}
+
+.s5-top { display: grid; grid-template-columns: 1fr auto; align-items: flex-start; margin-bottom: 32px; gap: 24px; }
+.s5-title { font-size: clamp(28px,3.2vw,44px); font-weight: 900; color: var(--navy); letter-spacing: -0.02em; line-height: 1; margin-top: 10px; }
+.s5-title em { font-style: normal; color: var(--red); }
+.s5-award {
+  display: flex; align-items: center; gap: 10px;
+  background: #FEF3C7; border: 1px solid rgba(180,83,9,0.25); padding: 12px 18px;
+}
+.s5-award-title { font-size: 12px; font-weight: 700; color: var(--gold); }
+.s5-award-sub { font-size: 10px; color: var(--mid); margin-top: 2px; }
+
+/* 4 KPI boxes */
+.s5-kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 12px; }
+.s5-kpi {
+  background: white; border: 1px solid var(--border);
+  padding: 22px 20px; position: relative; overflow: hidden;
+}
+.s5-kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+.s5-kpi.k1::after { background: var(--red); }
+.s5-kpi.k2::after { background: var(--blue); }
+.s5-kpi.k3::after { background: #166534; }
+.s5-kpi.k4::after { background: #B45309; }
+.s5-kpi-before { font-size: 12px; color: var(--mid); text-decoration: line-through; margin-bottom: 2px; }
+.s5-kpi-num { font-size: 48px; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
+.s5-kpi.k1 .s5-kpi-num { color: var(--red); }
+.s5-kpi.k2 .s5-kpi-num { color: var(--blue); }
+.s5-kpi.k3 .s5-kpi-num { color: #166534; }
+.s5-kpi.k4 .s5-kpi-num { color: #B45309; }
+.s5-kpi-delta { font-size: 11px; font-weight: 700; margin-top: 5px; }
+.s5-kpi.k1 .s5-kpi-delta, .s5-kpi.k3 .s5-kpi-delta, .s5-kpi.k4 .s5-kpi-delta { color: #166534; }
+.s5-kpi.k2 .s5-kpi-delta { color: #166534; }
+.s5-kpi-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid); margin-top: 3px; }
+
+/* Bottom 2-col */
+.s5-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.s5-b-card { background: white; border: 1px solid var(--border); padding: 20px 24px; }
+.s5-b-card.navy-border { border-left: 4px solid var(--navy); }
+.s5-b-card.blue-border  { border-left: 4px solid var(--blue); }
+.s5-b-title { font-size: 13px; font-weight: 800; color: var(--navy); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.s5-b-text { font-size: 13px; color: var(--dark); line-height: 1.6; font-weight: 400; }
+.s5-b-text strong { color: var(--navy); font-weight: 700; }
+.s5-b-text em { font-style: normal; color: var(--red); font-weight: 700; }
+.s5-sig { font-size: 11px; color: var(--mid); font-style: italic; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; }
+
+/* Values row at bottom of s5 */
+.s5-values { display: flex; gap: 6px; margin-top: 10px; }
+.s5-val { background: var(--navy); color: white; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 10px; }
+.s5-val.red { background: var(--red); }
+
+/* ── HINT ── */
+.hint { position: fixed; top: 20px; right: 20px; font-size: 10px; font-weight: 600; color: rgba(0,0,0,0.25); letter-spacing: 0.1em; text-transform: uppercase; display: flex; gap: 6px; align-items: center; z-index: 999; animation: fadeOut 5s ease forwards; }
+.kbd { border: 1px solid rgba(0,0,0,0.15); padding: 2px 6px; font-size: 9px; background: white; }
+@keyframes fadeOut { 0%{opacity:1} 60%{opacity:1} 100%{opacity:0} }
+#s1 .hint { color: rgba(255,255,255,0.25); }
+#s1 .kbd { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.5); }
+</style>
+</head>
+<body>
+<div class="pres" id="pres">
+
+<div class="progress"><div class="progress-fill" id="prog"></div></div>
+
+<div class="hint" id="hint">
+  <span class="kbd">←</span><span class="kbd">→</span> or click to navigate
+</div>
+
+<!-- ══════ SLIDE 1 — COVER ══════ -->
+<div class="slide active" id="s1">
+  <div class="s1-wrap">
+    <div class="s1-left">
+      <div class="s1-eyebrow anim">
+        <div class="s1-eyebrow-dot"></div>
+        DESIGN LEADERSHIP · HUMAN-CENTRED DESIGN · STRATEGIC SYSTEM DESIGN
+        <span class="s1-eyebrow-badge">HCD<span>
+      </div>
+      <h1 class="s1-title anim">
+        <span class="light">Reconnecting People</span>
+        to What's
+        <span class="red">Theirs</span>
+      </h1>
+      <p class="s1-desc anim">
+        A human-centred service design case study that transformed a 30-year-old 
+        legacy system — reuniting vulnerable NSW communities with over $600M 
+        in unclaimed funds.
+      </p>
+      <div class="s1-who anim">
+        <div class="s1-who-row">
+          <strong>Jessie Li</strong>
+          <span class="s1-sep"></span>
+          Lead Service & Produc Designer
+          <span class="s1-sep"></span>
+          NSW Dept. of Customer Service - Revenue NSW
+        </div>
+        <div class="s1-who-row">
+          <strong>Project:</strong> Unclaimed Money Reconnect
+          <span class="s1-sep"></span>
+          18-month end-to-end HCD
+        </div>
+      </div>
+      <div style="margin-top:28px; display:flex; flex-wrap:wrap; gap:8px;" class="anim">
+        <span class="strategy-pill">↔ RNSW Aspire 2032</span>
+        <span class="strategy-pill gold">Passionate Customer Focus</span>
+        <span class="strategy-pill green">Embrace Innovation</span>
+                <span class="strategy-pill green">Always Secure</span>
+      </div>
+    </div>
+
+    <div class="s1-right">
+      <div class="s1-kpi anim">
+        <div class="s1-kpi-num">81<span class="red">%</span></div>
+        <div class="s1-kpi-sub">Customer Satisfaction · ↑ from 65%</div>
+        <div class="s1-kpi-bar" style="--w:81%"></div>
+      </div>
+      <div class="s1-kpi anim">
+        <div class="s1-kpi-num">3<span class="red" style="font-size:32px"> days</span></div>
+        <div class="s1-kpi-sub">Processing Time · ↓ from 28 days (−89%)</div>
+        <div class="s1-kpi-bar" style="--w:11%"></div>
+      </div>
+      <div class="s1-kpi anim">
+        <div class="s1-kpi-num">45<span class="red">%</span></div>
+        <div class="s1-kpi-sub">Operational Efficiency Gain</div>
+        <div class="s1-kpi-bar" style="--w:45%"></div>
+      </div>
+      <div class="s1-award anim">
+        <span style="font-size:22px">🏆</span>
+        <div class="s1-award-body">
+          <div class="s1-award-title">2025 Revenue NSW Excellence Award</div>
+          <div class="s1-award-sub">"Customer at Heart" — Dept. of Customer Service</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 2 — SITUATION ══════ -->
+<div class="slide" id="s2">
+  <div class="s2-wrap">
+    <div class="s2-left">
+      <div class="s2-star-label anim">S · Situation</div>
+      <h2 class="s2-h anim">The Issue:<br><em>Service Equity</em></h2>
+      <p class="s2-para anim">
+        RNSW held over $600M+ in unclaimed money. Not because no one cared — 
+        but because a 30-year-old legacy system made it <strong style="color:white">nearly impossible</strong> for 
+        vulnerable Australians to access what was rightfully theirs.
+      </p>
+      <div class="anim">
+        <div class="s2-bignum">
+          <span class="s2-bn-cur">$</span>
+          <span class="s2-bn-num">600</span>
+          <span class="s2-bn-suf">M+</span>
+        </div>
+        <div class="s2-bn-label">Unclaimed — held for years</div>
+      </div>
+      <div class="s2-strategy anim">
+        <div class="s2-strategy-icon">🎯</div>
+        <div class="s2-strategy-text">
+          <div class="s2-st-title">RNSW Aspire 2032 · Passionate Customer Focus</div>
+          <div class="s2-st-sub">"We are <strong>easy</strong> for customers to engage with." · "We are <strong>connected</strong> to our customers and anticipate their needs."</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s2-right">
+      <div class="s2-section-h anim">System Failures</div>
+      <div class="s2-problems anim">
+        <div class="s2-prob">
+          <div class="s2-prob-icon">📧</div>
+          <div>
+            <div class="s2-prob-name">Insecure Identity Process</div>
+            <div class="s2-prob-desc">Personal ID documents sent via email</div>
+          </div>
+          <div class="s2-prob-stat">28d</div>
+        </div>
+        <div class="s2-prob">
+          <div class="s2-prob-icon">📊</div>
+          <div>
+            <div class="s2-prob-name">Incomplete Claims</div>
+            <div class="s2-prob-desc">Most claimants couldn't finish the process</div>
+          </div>
+          <div class="s2-prob-stat">82.5%</div>
+        </div>
+        <div class="s2-prob">
+          <div class="s2-prob-icon">🗃️</div>
+          <div>
+            <div class="s2-prob-name">Poor Data Quality</div>
+            <div class="s2-prob-desc">Enterprise records missing critical fields</div>
+          </div>
+          <div class="s2-prob-stat">45%</div>
+        </div>
+        <div class="s2-prob">
+          <div class="s2-prob-icon">⚙️</div>
+          <div>
+            <div class="s2-prob-name">Legacy Technology</div>
+            <div class="s2-prob-desc">30+ year-old manual fragmented system</div>
+          </div>
+          <div class="s2-prob-stat">30yr</div>
+        </div>
+      </div>
+
+      <div class="s2-section-h anim">Most Affected Communities</div>
+      <div class="s2-tags anim">
+        <span class="s2-vtag hl">Elderly Citizens</span>
+        <span class="s2-vtag hl">CALD Communities</span>
+        <span class="s2-vtag hl">People with Disability</span>
+        <span class="s2-vtag">Bereaved Families</span>
+        <span class="s2-vtag">Financial Hardship</span>
+        <span class="s2-vtag">Low Digital Literacy</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 3 — TASK + APPROACH ══════ -->
+<div class="slide" id="s3">
+  <div class="s3-wrap">
+    <div class="s3-top">
+      <div>
+        <div class="tag anim">T · Task &amp; A · Approach</div>
+        <h2 class="s3-title anim">Double Diamond<br><em>End-to-End HCD</em></h2>
+      </div>
+      <div class="s3-role anim">
+        <div class="s3-role-label">My Role</div>
+        <div class="s3-role-name">Lead Service Designer</div>
+        <div class="s3-role-sub">30+ Developers · PM · BA · QA</div>
+      </div>
+    </div>
+
+    <div class="s3-steps anim">
+      <div class="s3-step d1">
+        <div class="s3-step-top-bar"></div>
+        <div class="s3-step-phase">01 · Discover</div>
+        <div class="s3-step-name">Deep Research</div>
+        <div class="s3-bullets">
+          <div class="s3-b">100+ hrs stakeholders & customers workshops</div>
+          <div class="s3-b">Global Product Comparison</div>
+          <div class="s3-b">HCD discovery research</div>
+          <div class="s3-b">Vulnerable user interviews</div>
+           <div class="s3-b">Pain point synthesis</div>
+           <div class="s3-b">Stakeholder mapping</div>
+          <div class="s3-b">Empathy mapping</div>
+        </div>
+        <div class="s3-metric">
+          <div class="s3-metric-num">100+</div>
+          <div class="s3-metric-label">Hours Workshops</div>
+        </div>
+      </div>
+      <div class="s3-step d2">
+        <div class="s3-step-top-bar"></div>
+        <div class="s3-step-phase">02 · Define</div>
+        <div class="s3-step-name">Journey Mapping</div>
+        <div class="s3-bullets">
+          <div class="s3-b">Customer journey mapping</div>
+          <div class="s3-b">Persona mapping</div>
+           <div class="s3-b">Storyboarding</div>
+          <div class="s3-b">Service blueprints</div>
+          <div class="s3-b">Vision, Strategy, & Roadmap Workshops</div>
+         <div class="s3-b">Problem statement</div>
+         <div class="s3-b">Opportunity framing</div>
+        </div>
+        <div class="s3-metric">
+          <div class="s3-metric-num">8</div>
+          <div class="s3-metric-label">Service Blueprints</div>
+        </div>
+      </div>
+      <div class="s3-step d3">
+        <div class="s3-step-top-bar"></div>
+        <div class="s3-step-phase">03 · Ideate</div>
+        <div class="s3-step-name">Co-Design Sprints</div>
+        <div class="s3-bullets">
+          <div class="s3-b">Crazy 8s workshops</div>
+          <div class="s3-b">HMW frameworks</div>
+          <div class="s3-b">Cross-functional ideation</div>
+          <div class="s3-b">Policy-aware concepts</div>
+           <div class="s3-b">8 sub-user-journey maps</div>
+            <div class="s3-b">User flows</div>
+            <div class="s3-b">IA & Solution Mapping</div>
+        </div>
+        <div class="s3-metric">
+          <div class="s3-metric-num">30+</div>
+          <div class="s3-metric-label">Co-design Workshops</div>
+        </div>
+      </div>
+      <div class="s3-step d4">
+        <div class="s3-step-top-bar"></div>
+        <div class="s3-step-phase">04 · Prototype</div>
+        <div class="s3-step-name">Figma Design</div>
+        <div class="s3-bullets">
+          <div class="s3-b">Pixel-perfect interactive motion Hi-FI Figma (300+ prototypes, 11 branches) </div>
+          <div class="s3-b">NSW Design System & SNSW GEL 3.0</div>
+          <div class="s3-b">WCAG 2.1 AA built-in</div>
+          <div class="s3-b">Think aloud & A/B testing</div>
+          <div class="s3-b">Dev-ready handover</div>
+        </div>
+        <div class="s3-metric">
+          <div class="s3-metric-num">3</div>
+          <div class="s3-metric-label">End-to-End Portals Designed</div>
+        </div>
+      </div>
+      <div class="s3-step d5">
+        <div class="s3-step-top-bar"></div>
+        <div class="s3-step-phase">05 · Test &amp; Iterate</div>
+        <div class="s3-step-name">600+ Feedbacks</div>
+        <div class="s3-bullets">
+          <div class="s3-b">Usability testing</div>
+          <div class="s3-b">Heuristic evaluation & Design Critique</div>
+          <div class="s3-b">Accessibility audits</div>
+          <div class="s3-b">UAT with real users</div>
+          <div class="s3-b">Evidence-based iteration</div>
+          <div class="s3-b">Reusable & Scalable Templates</div>
+        </div>
+        <div class="s3-metric">
+          <div class="s3-metric-num">18</div>
+          <div class="s3-metric-label">Design Iterations</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s3-sh-strip anim">
+      <span class="s3-sh-label">Key Stakeholders:</span>
+      <span class="s3-sh-tag navy">Vulnerable Claimants</span>
+      <span class="s3-sh-tag">Enterprise Admins</span>
+      <span class="s3-sh-tag">Internal Staff</span>
+      <span class="s3-sh-tag">Legal &amp; Policy </span>
+      <span class="s3-sh-tag">Privacy &amp; Security </span>
+      <span class="s3-sh-tag">Audit & Compliance</span>
+       <span class="s3-sh-tag">Business Stakeholders</span>
+      <span class="s3-sh-tag">Business & Data Analysts</span>
+      <span class="s3-sh-tag">Solution Architects</span>
+      <span class="s3-sh-tag">30+ Developers</span>
+      <span class="s3-sh-tag">QAs</span>
+      <span class="s3-sh-tag">PMs</span>
+      <span class="s3-sh-tag">ELT & Minister</span>
+      <span class="s3-sh-tag">SNSW</span>
+      <span class="s3-sh-tag">RNSW Finance</span>
+      <span class="s3-sh-tag">Fround & Risk Prevention</span>
+      <span class="s3-sh-tag">Banking & Payment</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 4 — CHALLENGES + INCLUSION ══════ -->
+<div class="slide" id="s4">
+  <div class="s4-wrap">
+    <div class="s4-left">
+      <div class="tag anim">C · Challenges Overcome</div>
+      <h2 style="font-size:clamp(26px,3vw,38px);font-weight:900;color:var(--navy);line-height:1;letter-spacing:-0.02em;margin-top:8px" class="anim">
+        Four Defining<br><span style="color:var(--red)">Moments</span>
+      </h2>
+      <div class="s4-chal-list">
+        <div class="s4-chal anim">
+          <div class="s4-chal-num">01</div>
+          <div>
+            <div class="s4-chal-title">Identity &amp; Security Risk</div>
+            <div class="s4-chal-desc">Claimants emailing personal ID — insecure, off-putting for vulnerable users</div>
+            <div class="s4-chal-sol">NSW Digital Identity via Service NSW</div>
+          </div>
+        </div>
+        <div class="s4-chal anim">
+          <div class="s4-chal-num">02</div>
+          <div>
+            <div class="s4-chal-title">45% Incomplete Data</div>
+            <div class="s4-chal-desc">Enterprise records missing fields, causing cascading rework downstream</div>
+            <div class="s4-chal-sol">Real-time upfront validation framework</div>
+          </div>
+        </div>
+        <div class="s4-chal anim">
+          <div class="s4-chal-num">03</div>
+          <div>
+            <div class="s4-chal-title">Complex Vulnerability Profiles</div>
+            <div class="s4-chal-desc">Grief, cognitive difficulty, CALD barriers, low digital literacy</div>
+            <div class="s4-chal-sol">Vulnerability-informed design throughout</div>
+          </div>
+        </div>
+        <div class="s4-chal anim">
+          <div class="s4-chal-num">04</div>
+          <div>
+            <div class="s4-chal-title">Fraud &amp; Trust Risk</div>
+            <div class="s4-chal-desc">Most at-risk users are also most targeted by fraudulent actors</div>
+            <div class="s4-chal-sol">Multi-layer fraud detection architecture</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s4-right">
+      <div class="tag anim">Accessible &amp; Inclusive Design</div>
+      <h2 class="s4-inc-title anim">
+        Vulnerability is not<br>a constraint —<br>it's our greatest<br><em>design opportunity.</em>
+      </h2>
+      <div class="s4-stds anim">
+        <div class="s4-std">
+          <div class="s4-std-badge">WCAG 2.1 AA</div>
+          <div class="s4-std-text">Full accessibility compliance across all touchpoints</div>
+        </div>
+        <div class="s4-std">
+          <div class="s4-std-badge">Plain English</div>
+          <div class="s4-std-text">Reading Age 8, tested with low-literacy users</div>
+        </div>
+        <div class="s4-std">
+          <div class="s4-std-badge">CALD Support</div>
+          <div class="s4-std-text">Multilingual guidance &amp; culturally sensitive design</div>
+        </div>
+        <div class="s4-std">
+          <div class="s4-std-badge">NSW Gov DS</div>
+          <div class="s4-std-text">NSW Government Design System + GEL 3.0 Framework</div>
+        </div>
+        <div class="s4-std">
+          <div class="s4-std-badge">600+ Feedbacks</div>
+          <div class="s4-std-text">Tested across diverse vulnerability profiles, 18 iterations</div>
+        </div>
+      </div>
+      <div class="s4-quote anim">
+        <div class="s4-quote-text">"Designing for the margins makes the centre <em>stronger</em> — every accessibility improvement benefits all users."</div>
+        <div class="s4-quote-attr">Design principle applied across all 8 sub-journeys · Unclaimed Money Reconnect</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 5 — RESULTS ══════ -->
+<div class="slide" id="s5">
+  <div class="s5-wrap">
+    <div class="s5-top">
+      <div>
+        <div class="tag anim">R · Results &amp; Impact</div>
+        <h2 class="s5-title anim">Measured Results,<br><em>Real Lives Changed.</em></h2>
+      </div>
+      <div class="s5-award anim">
+        <span style="font-size:22px">🏆</span>
+        <div>
+          <div class="s5-award-title">2025 Revenue NSW Excellence Award — Customer at Heart</div>
+          <div class="s5-award-sub">Dept. of Customer Service</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s5-kpis anim">
+      <div class="s5-kpi k1">
+        <div class="s5-kpi-before">65% before</div>
+        <div class="s5-kpi-num">81<span style="font-size:24px">%</span></div>
+        <div class="s5-kpi-delta">▲ +16 percentage points</div>
+        <div class="s5-kpi-label">Customer Satisfaction</div>
+      </div>
+      <div class="s5-kpi k2">
+        <div class="s5-kpi-before">28 days before</div>
+        <div class="s5-kpi-num">3<span style="font-size:24px">d</span></div>
+        <div class="s5-kpi-delta">▼ −89% processing time</div>
+        <div class="s5-kpi-label">End-to-End Processing</div>
+      </div>
+      <div class="s5-kpi k3">
+        <div class="s5-kpi-before">&nbsp;</div>
+        <div class="s5-kpi-num">45<span style="font-size:24px">%</span></div>
+        <div class="s5-kpi-delta">▲ Efficiency gain</div>
+        <div class="s5-kpi-label">Operational Improvement</div>
+      </div>
+      <div class="s5-kpi k4">
+        <div class="s5-kpi-before">Held for years</div>
+        <div class="s5-kpi-num">$600<span style="font-size:24px">M+</span></div>
+        <div class="s5-kpi-delta">▲ Reconnected to owners</div>
+        <div class="s5-kpi-label">Returned to NSW Residents</div>
+      </div>
+    </div>
+
+    <div class="s5-bottom anim">
+      <div class="s5-b-card navy-border">
+        <div class="s5-b-title">🔄 Strategic Legacy</div>
+        <div class="s5-b-text">
+          Reusable design templates now accelerate digital transformation of 
+          other Revenue NSW legacy systems. <strong>One project, system-wide impact.</strong> 
+          Enable organisations to move faster without sacrificing quality. <em>Designing once, scaling many times.</em> — 
+          This approach strengthens both <strong>experience quality</strong> and <strong>delivery efficiency</strong> over time for <strong>consistency, reuse</strong>, and <strong>long-term value</strong>.
+        </div>
+      </div>
+      <div class="s5-b-card blue-border">
+        <div class="s5-b-title">💙 Long Term IMPACT</div>
+        <div class="s5-b-text">
+
+ The Reconnect platform now serves as a model for RNSW digital transformation, 
+ showing how <strong>human-centered design</strong> can <em>transform complex legacy systems</em> while protecting and empowering vulnerable customers. 
+ The approach has been adopted across other Revenue NSW services, demonstrating the scalability of 
+ <strong>vulnerability-informed service design</strong>.
+        </div>
+        <div class="s5-sig">— Jessie Li, Lead Designer · Parramatta NSW · jessielee1230@gmail.com</div>
+      </div>
+    </div>
+
+    <div class="s5-values anim">
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-right:4px;align-self:center">Values Demonstrated:</span>
+      <span class="s5-val red">Service</span>
+      <span class="s5-val">Trust</span>
+      <span class="s5-val">Accountability</span>
+      <span class="s5-val">Integrity</span>
+      <span class="s5-val">Respect</span>
+    </div>
+  </div>
+</div>
+
+<!-- Chrome -->
+<div class="chrome">
+  <div class="chrome-left">
+    <div class="nsw-mark">NSW</div>
+    <span class="chrome-label">Jessie Li · Lead Designer · NSW Government · March 2026</span>
+  </div>
+  <div class="chrome-center" id="dots"></div>
+  <div class="chrome-right">
+    <span class="slide-ctr"><span id="cur">1</span> / 5</span>
+    <button class="nav-btn" onclick="nav(-1)">←</button>
+    <button class="nav-btn" onclick="nav(1)">→</button>
+  </div>
+</div>
+
+</div><!-- /pres -->
+<script>
+const slides = document.querySelectorAll('.slide');
+const dotsEl = document.getElementById('dots');
+const prog = document.getElementById('prog');
+const curEl = document.getElementById('cur');
+let cur = 0;
+const N = slides.length;
+
+// Dots
+for (let i=0;i<N;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' active':'');
+  d.onclick=()=>go(i);
+  dotsEl.appendChild(d);
+}
+
+function go(n){
+  if(n===cur) return;
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('exit');
+  const old=cur;
+  setTimeout(()=>slides[old].classList.remove('exit'),500);
+  cur=((n%N)+N)%N;
+  slides[cur].classList.add('active');
+  update();
+}
+function nav(d){go(cur+d);}
+function update(){
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===cur));
+  prog.style.width=((cur+1)/N*100)+'%';
+  curEl.textContent=cur+1;
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();nav(1);}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();nav(-1);}
+});
+document.getElementById('pres').addEventListener('click',e=>{
+  if(e.target.closest('.chrome')||e.target.closest('.nav-btn')||e.target.closest('.dot')) return;
+  nav(1);
+});
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
+document.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50)nav(d<0?1:-1);});
+update();
+</script>
+</body>
+</html>
